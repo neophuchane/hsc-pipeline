@@ -1,0 +1,22 @@
+version: "3.9"
+
+# Single service — no Redis, no Celery.
+# Jobs run in a thread pool inside the FastAPI process.
+# All data is ephemeral (stored in /tmp, cleared on restart).
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - UPLOAD_DIR=/tmp/hsc_uploads
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:8000
+    volumes:
+      # Hot-reload backend source in development (optional)
+      - ./backend:/app:ro
+      # Keep the built static files from the image layer
+    stdin_open: true
+    tty: true

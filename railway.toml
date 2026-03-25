@@ -1,0 +1,14 @@
+[build]
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+
+[deploy.env]
+# Lock this down to your Vercel URL after first deploy, e.g.:
+# ALLOWED_ORIGINS = "https://hsc-pipeline.vercel.app"
+ALLOWED_ORIGINS = "*"
+UPLOAD_DIR = "/tmp/hsc_uploads"

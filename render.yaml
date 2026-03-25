@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: hsc-pipeline
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: UPLOAD_DIR
+        value: /tmp/hsc_uploads
+      - key: ALLOWED_ORIGINS
+        value: "*"

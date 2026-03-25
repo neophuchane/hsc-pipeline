@@ -1,0 +1,20 @@
+# FastAPI + server
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.12
+
+# Bioinformatics
+scanpy==1.10.3
+anndata==0.11.1
+pandas==2.2.3
+numpy==1.26.4
+scipy==1.13.1
+leidenalg==0.10.2
+python-igraph==0.11.8
+
+# HDF5 support (Read10X_h5 equivalent)
+tables==3.10.1
+h5py==3.12.1
+
+# Pydantic v2
+pydantic==2.10.3
