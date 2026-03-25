@@ -92,4 +92,9 @@ async def upload_files(
         ))
         logger.info("Uploaded %s (fmt=%s, sample=%s)", upload.filename, fmt, sample_name)
 
+    # On Modal: commit the volume so the pipeline worker can see the new files
+    from app import modal_context
+    if modal_context.volume_commit is not None:
+        modal_context.volume_commit()
+
     return UploadResponse(files=uploaded)

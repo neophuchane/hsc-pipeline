@@ -1,12 +1,11 @@
 """
-In-memory job store + thread pool executor for async pipeline execution.
+Job submission and state management.
 
-No Celery or Redis required. All state lives in memory — cleared on server restart,
-which is exactly the desired behavior (no persistent data).
+Local mode  — thread pool executor + in-memory dict (default)
+Modal mode  — modal.Function.spawn() + modal.Dict (set via modal_context)
 """
 
 import concurrent.futures
-import json
 import logging
 import threading
 from typing import Any
@@ -14,33 +13,44 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# In-memory job store
+# In-memory fallback store (local / Docker / Render / Railway)
 # ---------------------------------------------------------------------------
 
 _jobs: dict[str, dict[str, Any]] = {}
 _jobs_lock = threading.Lock()
-
-# Single-worker thread pool — pipeline is CPU/memory-intensive
 _executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
 
 
+def _get_store() -> Any:
+    """Return modal.Dict if running on Modal, otherwise the local dict."""
+    from app import modal_context
+    return modal_context.job_store if modal_context.job_store is not None else _jobs
+
+
 def _set_job(job_id: str, **fields: Any) -> None:
-    with _jobs_lock:
-        _jobs.setdefault(job_id, {}).update(fields)
+    store = _get_store()
+    if store is _jobs:
+        with _jobs_lock:
+            _jobs.setdefault(job_id, {}).update(fields)
+    else:
+        # modal.Dict — get + set (no lock needed, Modal handles concurrency)
+        current = store.get(job_id) or {}
+        store[job_id] = {**current, **fields}
 
 
 def get_job(job_id: str) -> dict[str, Any] | None:
-    with _jobs_lock:
-        return dict(_jobs.get(job_id, {}))
-
-
-def all_job_ids() -> list[str]:
-    with _jobs_lock:
-        return list(_jobs.keys())
+    store = _get_store()
+    if store is _jobs:
+        with _jobs_lock:
+            val = _jobs.get(job_id)
+            return dict(val) if val is not None else None
+    else:
+        val = store.get(job_id)
+        return dict(val) if val is not None else None
 
 
 # ---------------------------------------------------------------------------
-# Pipeline runner
+# Local pipeline runner (thread pool)
 # ---------------------------------------------------------------------------
 
 def _run_pipeline_sync(
@@ -52,8 +62,6 @@ def _run_pipeline_sync(
     resolution: float,
     remove_duplicates: bool,
 ) -> None:
-    """Runs in a thread pool. Updates in-memory job state as it progresses."""
-
     def progress(status: str, pct: int, step: str) -> None:
         _set_job(job_id, status=status, progress=pct, current_step=step)
 
@@ -104,18 +112,19 @@ def _run_pipeline_sync(
         payload = build_results_payload(combined, mode=mode)
         payload["job_id"] = job_id
 
-        _set_job(job_id,
-                 status="done",
-                 progress=100,
-                 current_step="Done",
-                 results=payload)
-
+        _set_job(job_id, status="done", progress=100, current_step="Done",
+                 results=payload, error=None)
         logger.info("Pipeline complete for job %s (%d cells)", job_id, payload["n_cells"])
 
     except Exception as exc:
         logger.exception("Pipeline failed for job %s: %s", job_id, exc)
-        _set_job(job_id, status="failed", progress=0, current_step="Failed", error=str(exc))
+        _set_job(job_id, status="failed", progress=0, current_step="Failed",
+                 error=str(exc), results=None)
 
+
+# ---------------------------------------------------------------------------
+# Public submit function
+# ---------------------------------------------------------------------------
 
 def submit_pipeline(
     job_id: str,
@@ -126,10 +135,22 @@ def submit_pipeline(
     resolution: float = 0.2,
     remove_duplicates: bool = True,
 ) -> None:
-    """Enqueue pipeline job. Returns immediately; runs in background thread."""
-    _set_job(job_id, status="queued", progress=0, current_step="Waiting", results=None, error=None)
-    _executor.submit(
-        _run_pipeline_sync,
-        job_id, file_entries, mode, n_top_genes, n_pcs, resolution, remove_duplicates,
-    )
+    """
+    Submit a pipeline job.
+    - On Modal: spawns a Modal background function via modal_context.pipeline_fn
+    - Locally: submits to thread pool
+    """
+    _set_job(job_id, status="queued", progress=0, current_step="Waiting",
+             results=None, error=None)
+
+    from app import modal_context
+    if modal_context.pipeline_fn is not None:
+        modal_context.pipeline_fn(
+            job_id, file_entries, mode, n_top_genes, n_pcs, resolution, remove_duplicates
+        )
+    else:
+        _executor.submit(
+            _run_pipeline_sync,
+            job_id, file_entries, mode, n_top_genes, n_pcs, resolution, remove_duplicates,
+        )
     logger.info("Submitted pipeline job %s", job_id)

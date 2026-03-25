@@ -7,59 +7,56 @@ Upload → run → explore dot plot & UMAP. No data is saved — all results are
 ## Architecture
 
 ```
-Vercel  — frontend (Vite static build, CDN-served)
-Railway — backend  (FastAPI Docker container, persistent process)
+Vercel — frontend  (Vite static build, CDN-served)
+Modal  — backend   (FastAPI web endpoint + pipeline worker)
 ```
 
-The frontend calls the Railway backend via `VITE_API_URL`.
+The frontend calls the Modal web endpoint via `VITE_API_URL`.
 
 ---
 
 ## Deployment
 
-### Step 1 — Push to GitHub
+### Step 1 — Deploy backend to Modal
+
+Modal is already installed on your machine. In PowerShell:
 
 ```powershell
 cd C:\Users\nphuc\Coding\hsc-pipeline
-git init
-git add .
-git commit -m "initial commit"
-gh repo create hsc-pipeline --public --push --source=.
+pip install modal          # if not already installed
+modal setup                # authenticate (opens browser)
+modal deploy modal_app.py  # deploy — takes ~5 min first time (builds image)
+```
+
+After deploy, Modal prints your web endpoint URL:
+```
+✓ Created web endpoint: https://neophuchane--hsc-pipeline-web.modal.run
+```
+Copy that URL.
+
+To test before deploying permanently:
+```powershell
+modal serve modal_app.py   # temporary URL, live reloads on file save
 ```
 
 ---
 
-### Step 2 — Deploy backend to Railway
+### Step 2 — Deploy frontend to Vercel
 
-1. Go to [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo**
-2. Select your `hsc-pipeline` repo
-3. Railway detects the root `Dockerfile` automatically — hit **Deploy**
-4. Wait for the build (~10 min first time; scanpy is large)
-5. Go to **Settings → Networking → Generate Domain**
-6. Copy the URL — it looks like `https://hsc-pipeline-production.up.railway.app`
-
----
-
-### Step 3 — Deploy frontend to Vercel
-
-1. Go to [vercel.com](https://vercel.com) → **New Project** → import `hsc-pipeline`
-2. In the **Configure Project** screen set:
-   - **Root Directory** → `frontend`
-   - Framework Preset → Vite (auto-detected)
+1. Go to [vercel.com](https://vercel.com) → **New Project** → import `neophuchane/hsc-pipeline`
+2. Set **Root Directory** → `frontend`
 3. Under **Environment Variables** add:
    ```
-   VITE_API_URL = https://hsc-pipeline-production.up.railway.app
+   VITE_API_URL = https://neophuchane--hsc-pipeline-web.modal.run
    ```
-   (use your actual Railway URL from Step 2)
+   (use your actual Modal URL from Step 1)
 4. Click **Deploy**
-
-The frontend is now live at `https://hsc-pipeline.vercel.app` (or similar).
 
 ---
 
-### Step 4 — Lock down CORS (optional but recommended)
+### Step 3 — Lock down CORS (optional)
 
-In Railway → your service → **Variables**, set:
+In `railway.toml` or as a Modal secret, set:
 ```
 ALLOWED_ORIGINS = https://hsc-pipeline.vercel.app
 ```
