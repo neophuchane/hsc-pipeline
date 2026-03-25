@@ -38,17 +38,28 @@ def _detect_format(path: str) -> str:
     raise ValueError(f"Cannot detect format for: {path}")
 
 
+def _index_looks_like_barcodes(index: pd.Index) -> bool:
+    """
+    Heuristic: 10X barcodes are 16-mer ACGT strings with a '-N' suffix.
+    Gene names look like GAPDH, CD34, ENSG00000... etc.
+    Sample the first few entries to decide.
+    """
+    import re
+    barcode_re = re.compile(r'^[ACGTacgt]{10,}-\d+$')
+    sample = [str(v) for v in index[:20]]
+    hits = sum(1 for v in sample if barcode_re.match(v))
+    return hits >= len(sample) // 2
+
+
 def load_csv(filepath: str, sample_name: str) -> ad.AnnData:
     """
     Load a CSV/CSV.GZ count matrix.
 
-    R equivalent:
-        data <- read.csv(file, row.names = 1)
-        data_sparse <- as(as.matrix(data), "sparseMatrix")
-        obj <- CreateSeuratObject(counts = data_sparse)
+    Supports both orientations automatically:
+      - genes × cells  (R convention, rows=genes) → transpose to cells × genes
+      - cells × genes  (common GEO format, rows=cells) → use as-is
 
-    CSV layout: genes × cells (rows=genes, cols=cells)
-    AnnData layout: obs=cells, var=genes → transpose required.
+    AnnData layout: obs=cells, var=genes.
     """
     logger.info("Loading CSV: %s", filepath)
     if filepath.endswith(".gz"):
@@ -57,10 +68,20 @@ def load_csv(filepath: str, sample_name: str) -> ad.AnnData:
     else:
         df = pd.read_csv(filepath, index_col=0)
 
-    # genes as columns, cells as rows (transpose from R's genes×cells)
-    df = df.T
     df.index = df.index.astype(str)
     df.columns = df.columns.astype(str)
+
+    # Drop any non-numeric columns that slipped through (e.g. metadata columns)
+    df = df.select_dtypes(include=[np.number, "number"])
+
+    # Auto-detect orientation.
+    # If the index contains barcodes → rows are cells → use as-is (cells × genes).
+    # If the index contains gene names → rows are genes → transpose to cells × genes.
+    if _index_looks_like_barcodes(df.index):
+        logger.info("CSV detected as cells × genes (no transpose needed)")
+    else:
+        logger.info("CSV detected as genes × cells (transposing)")
+        df = df.T
 
     X = sp.csr_matrix(df.values.astype(np.float32))
     adata = ad.AnnData(
