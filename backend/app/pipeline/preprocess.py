@@ -63,6 +63,12 @@ def run_pca(adata: ad.AnnData, n_comps: int = 30) -> ad.AnnData:
 
     R: RunPCA(obj, npcs=30)
     """
+    # Cap n_comps to what the data can support
+    n_hvg = int(adata.var["highly_variable"].sum()) if "highly_variable" in adata.var else adata.n_vars
+    max_comps = min(n_comps, adata.n_obs, n_hvg) - 1
+    if max_comps < n_comps:
+        logger.warning("Reducing n_comps from %d to %d (dataset too small)", n_comps, max_comps)
+    n_comps = max(1, max_comps)
     logger.info("Running PCA (n_comps=%d)", n_comps)
     sc.tl.pca(adata, n_comps=n_comps, use_highly_variable=True)
     return adata
