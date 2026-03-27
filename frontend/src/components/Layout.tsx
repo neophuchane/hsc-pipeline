@@ -3,9 +3,10 @@ import type { ReactNode } from "react";
 interface Props {
   sidebar: ReactNode;
   main: ReactNode;
+  noScroll?: boolean;
 }
 
-export function Layout({ sidebar, main }: Props) {
+export function Layout({ sidebar, main, noScroll }: Props) {
   return (
     <div className="app-layout">
       <header className="app-header">
@@ -22,7 +23,7 @@ export function Layout({ sidebar, main }: Props) {
 
       <div className="app-body">
         <aside className="app-sidebar">{sidebar}</aside>
-        <main className="app-main">{main}</main>
+        <main className={`app-main${noScroll ? " app-main--no-scroll" : ""}`}>{main}</main>
       </div>
     </div>
   );

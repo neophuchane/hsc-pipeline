@@ -166,17 +166,6 @@ export default function App() {
       {!results && !pipeline.isRunning && (
         <div className="empty-state">
           <img src="/bloodstem.gif" alt="BloodShot" className="empty-state__gif" />
-          <h2 className="empty-state__title">HSC Developmental Classification</h2>
-          <p className="empty-state__body">
-            Upload your scRNA-seq data (CSV, 10X H5, or MTX), then click
-            <strong> Run Pipeline</strong> to classify HSCs by developmental stage
-            using the nascent or maturation gene signature scorecard.
-          </p>
-          <ul className="empty-state__steps">
-            <li>1. Upload count matrix files in the sidebar</li>
-            <li>2. Select nascent or mature mode</li>
-            <li>3. Run the pipeline — results appear below</li>
-          </ul>
         </div>
       )}
 
@@ -238,5 +227,5 @@ export default function App() {
     </div>
   );
 
-  return <Layout sidebar={sidebar} main={main} />;
+  return <Layout sidebar={sidebar} main={main} noScroll={!results && !pipeline.isRunning} />;
 }
