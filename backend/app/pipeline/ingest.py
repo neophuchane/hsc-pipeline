@@ -11,6 +11,8 @@ R → Python equivalents:
 import gzip
 import logging
 import os
+import tarfile
+import tempfile
 from pathlib import Path
 
 import anndata as ad
@@ -36,6 +38,8 @@ def _detect_format(path: str) -> str:
         return "csv"
     if last_suffix in (".h5", ".h5ad"):
         return "h5"
+    if suffix in (".tar.gz", ".tgz") or last_suffix == ".tgz":
+        return "tar_gz"
     raise ValueError(f"Cannot detect format for: {path}")
 
 
@@ -129,6 +133,49 @@ def load_mtx(dirpath: str, sample_name: str) -> ad.AnnData:
     return adata
 
 
+def load_tar_gz(filepath: str, sample_name: str) -> ad.AnnData:
+    """
+    Load a .tar.gz archive containing 10X Genomics files (matrix.mtx,
+    barcodes.tsv, features.tsv / genes.tsv) and return an AnnData.
+
+    The archive is extracted to a temporary directory that is cleaned up
+    automatically, so parallel jobs don't collide.
+    """
+    logger.info("Loading tar.gz: %s", filepath)
+    with tempfile.TemporaryDirectory() as tmp:
+        with tarfile.open(filepath, "r:gz") as tar:
+            tar.extractall(path=tmp)
+
+        candidates = list(Path(tmp).rglob("*"))
+
+        def find_one(names: list[str]) -> Path | None:
+            for p in candidates:
+                if p.name in names:
+                    return p
+            return None
+
+        mtx      = find_one(["matrix.mtx", "matrix.mtx.gz"])
+        barcodes = find_one(["barcodes.tsv", "barcodes.tsv.gz"])
+        features = find_one(["features.tsv", "features.tsv.gz", "genes.tsv", "genes.tsv.gz"])
+
+        if not all([mtx, barcodes, features]):
+            missing = [n for n, v in [("matrix.mtx", mtx), ("barcodes.tsv", barcodes), ("features.tsv", features)] if not v]
+            raise FileNotFoundError(
+                f"Archive {filepath} is missing 10X files: {', '.join(missing)}"
+            )
+
+        # read_10x_mtx needs a directory — use the folder containing matrix.mtx
+        mtx_dir = str(mtx.parent)  # type: ignore[union-attr]
+        logger.info("Reading 10X MTX directory: %s", mtx_dir)
+        adata = sc.read_10x_mtx(mtx_dir, var_names="gene_symbols", cache=False)
+        adata.var_names_make_unique()
+        adata.obs_names_make_unique()
+        adata.obs["orig_ident"] = sample_name
+
+    logger.info("Loaded tar.gz: %d cells × %d genes", adata.n_obs, adata.n_vars)
+    return adata
+
+
 def ingest(path: str, sample_name: str | None = None) -> ad.AnnData:
     """
     Auto-detect file format and load into AnnData.
@@ -150,6 +197,8 @@ def ingest(path: str, sample_name: str | None = None) -> ad.AnnData:
         return load_h5(path, sample_name)
     if fmt == "mtx":
         return load_mtx(path, sample_name)
+    if fmt == "tar_gz":
+        return load_tar_gz(path, sample_name)
     raise ValueError(f"Unknown format: {fmt}")
 
 

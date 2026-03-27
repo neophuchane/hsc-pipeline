@@ -101,7 +101,7 @@ export function UploadPanel({ onUploaded }: Props) {
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
             <p className="drop-zone__label">Drop files or click to browse</p>
-            <p className="drop-zone__hint">.csv, .csv.gz, .h5, .tar.gz (MTX dir)</p>
+            <p className="drop-zone__hint">.csv, .csv.gz, .h5, .tar.gz (10X GEO archive or MTX dir)</p>
           </div>
         )}
       </div>
