@@ -165,6 +165,7 @@ export default function App() {
     <div className="main-content">
       {!results && !pipeline.isRunning && (
         <div className="empty-state">
+          <p className="empty-state__welcome">Welcome back, Neo</p>
           <img src="/bloodstem.gif" alt="BloodShot" className="empty-state__gif" />
         </div>
       )}
