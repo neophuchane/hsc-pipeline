@@ -138,7 +138,7 @@ html, body, #root {
   background: var(--bg);
 }
 .app-main--no-scroll { overflow: hidden; padding: 0; }
-.empty-state__welcome { font-size: 28px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.02em; margin: 24px 0 8px; }
+.empty-state__welcome { font-size: 28px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.02em; margin: 15vh 0 16px; }
 
 /* ============================================================
    Common
