@@ -172,6 +172,7 @@ export function UMAPViewer({ data, activeStages }: Props) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const layout: any = {
+    uirevision: "camera",  // preserves camera state across React re-renders
     paper_bgcolor: "#0e0e10",
     plot_bgcolor: "#0e0e10",
     margin: { l: 0, r: 0, t: 20, b: 0 },
