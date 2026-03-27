@@ -11,6 +11,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import Plot from "react-plotly.js";
+import Plotly from "plotly.js";
 import type { UMAPColorBy, UMAPPoint } from "@/types";
 
 interface Props {
@@ -108,8 +109,7 @@ export function UMAPViewer({ data, activeStages }: Props) {
   }, [filtered, colorBy]);
 
   // Called once Plotly mounts — store the actual graph div
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function handleInit(_figure: any, graphDiv: any) {
+  function handleInit(_figure: unknown, graphDiv: HTMLElement) {
     plotDivRef.current = graphDiv;
   }
 
@@ -143,8 +143,7 @@ export function UMAPViewer({ data, activeStages }: Props) {
       const theta = Math.atan2(y, x) + ROTATE_DELTA;
       const newEye = { x: r * Math.cos(theta), y: r * Math.sin(theta), z };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).Plotly?.relayout(el, { "scene.camera.eye": newEye });
+      Plotly.relayout(el, { "scene.camera.eye": newEye });
       eyeRef.current = newEye;
 
       rafRef.current = requestAnimationFrame(step);
