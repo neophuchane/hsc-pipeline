@@ -31,9 +31,10 @@ def _detect_format(path: str) -> str:
             return "mtx"
         raise ValueError(f"Directory {path} does not contain matrix.mtx")
     suffix = "".join(p.suffixes).lower()
+    last_suffix = p.suffix.lower()
     if ".csv" in suffix:
         return "csv"
-    if suffix in (".h5", ".h5ad"):
+    if last_suffix in (".h5", ".h5ad"):
         return "h5"
     raise ValueError(f"Cannot detect format for: {path}")
 
