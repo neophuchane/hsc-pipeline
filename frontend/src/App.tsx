@@ -165,12 +165,7 @@ export default function App() {
     <div className="main-content">
       {!results && !pipeline.isRunning && (
         <div className="empty-state">
-          <div className="empty-state__icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="1.2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-          </div>
+          <img src="/bloodstem.gif" alt="BloodShot" className="empty-state__gif" />
           <h2 className="empty-state__title">HSC Developmental Classification</h2>
           <p className="empty-state__body">
             Upload your scRNA-seq data (CSV, 10X H5, or MTX), then click
