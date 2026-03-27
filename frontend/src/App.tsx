@@ -166,7 +166,9 @@ export default function App() {
       {!results && !pipeline.isRunning && (
         <div className="empty-state">
           <p className="empty-state__welcome">Welcome back, Neo</p>
-          <img src="/bloodstem.gif" alt="BloodShot" className="empty-state__gif" />
+          <div className="empty-state__gif-crop">
+            <img src="/bloodstem.gif" alt="BloodShot" className="empty-state__gif" />
+          </div>
         </div>
       )}
 
