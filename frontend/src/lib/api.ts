@@ -11,9 +11,8 @@ import type {
   UploadResponse,
 } from "@/types";
 
-// In dev: VITE_API_URL is unset → Vite proxy forwards /api → localhost:8000
-// In production on Vercel: VITE_API_URL=https://your-app.railway.app
-const BASE = `${import.meta.env.VITE_API_URL ?? ""}/api`;
+const MODAL_URL = "https://cogenesis-bio--hsc-pipeline-web.modal.run";
+const BASE = `${import.meta.env.DEV ? "" : MODAL_URL}/api`;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, init);
