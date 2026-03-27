@@ -99,23 +99,6 @@ export default function App() {
       <UploadPanel onUploaded={handleUploaded} />
 
       <div className="run-controls">
-        {results && (
-          <div className="mode-tabs">
-            <button
-              className={`mode-tab ${mode === "nascent" ? "mode-tab--active" : ""}`}
-              onClick={() => setMode("nascent")}
-            >
-              Nascent
-            </button>
-            <button
-              className={`mode-tab ${mode === "mature" ? "mode-tab--active" : ""}`}
-              onClick={() => setMode("mature")}
-            >
-              Mature
-            </button>
-          </div>
-        )}
-
         <button
           className="run-btn"
           onClick={handleRunPipeline}
@@ -149,6 +132,8 @@ export default function App() {
             activeStages={activeStages}
             onToggle={handleToggleStage}
             onToggleGroup={handleToggleGroup}
+            mode={mode}
+            onModeChange={setMode}
           />
           <GeneSignaturePanel
             mode={mode}

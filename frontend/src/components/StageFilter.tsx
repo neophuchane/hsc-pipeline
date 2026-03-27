@@ -1,4 +1,4 @@
-import type { StageSummary } from "@/types";
+import type { PipelineMode, StageSummary } from "@/types";
 
 const GROUP_ORDER = ["AGM", "Fetal Liver", "Bone Marrow", "Spleen", "Cord Blood"];
 
@@ -7,9 +7,11 @@ interface Props {
   activeStages: Set<string>;
   onToggle: (stage: string) => void;
   onToggleGroup: (group: string, stages: string[]) => void;
+  mode: PipelineMode;
+  onModeChange: (mode: PipelineMode) => void;
 }
 
-export function StageFilter({ stages, activeStages, onToggle, onToggleGroup }: Props) {
+export function StageFilter({ stages, activeStages, onToggle, onToggleGroup, mode, onModeChange }: Props) {
   // Group stages by tissue_group
   const grouped: Record<string, StageSummary[]> = {};
   for (const s of stages) {
@@ -23,6 +25,20 @@ export function StageFilter({ stages, activeStages, onToggle, onToggleGroup }: P
 
   return (
     <div className="stage-filter">
+      <div className="mode-tabs">
+        <button
+          className={`mode-tab ${mode === "nascent" ? "mode-tab--active" : ""}`}
+          onClick={() => onModeChange("nascent")}
+        >
+          Nascent
+        </button>
+        <button
+          className={`mode-tab ${mode === "mature" ? "mode-tab--active" : ""}`}
+          onClick={() => onModeChange("mature")}
+        >
+          Mature
+        </button>
+      </div>
       <h3 className="panel-heading">Developmental Stages</h3>
       {orderedGroups.map((group) => {
         const groupStages = grouped[group] ?? [];
