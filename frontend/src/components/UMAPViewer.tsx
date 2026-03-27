@@ -129,8 +129,14 @@ export function UMAPViewer({ data, activeStages }: Props) {
   }
 
   function startRotation() {
-    // Cancel any existing loop
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+
+    // Seed eyeRef from the actual current camera position before starting
+    const el = plotDivRef.current as any;
+    if (el?._fullLayout?.scene?.camera?.eye) {
+      const { x, y, z } = el._fullLayout.scene.camera.eye;
+      eyeRef.current = { x, y, z };
+    }
 
     function step() {
       const el = plotDivRef.current;
