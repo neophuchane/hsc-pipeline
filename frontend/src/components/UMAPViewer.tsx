@@ -10,8 +10,7 @@
  */
 
 import { useMemo, useRef, useState } from "react";
-import Plot from "react-plotly.js";
-import Plotly from "plotly.js";
+import Plotly, { Plot } from "@/lib/plotly";
 import type { UMAPColorBy, UMAPPoint } from "@/types";
 
 interface Props {
