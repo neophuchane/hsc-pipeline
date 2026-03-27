@@ -7,7 +7,7 @@ interface Props {
 }
 
 const FORMAT_LABELS: Record<string, string> = { csv: "CSV", h5: "10X H5", mtx: "MTX" };
-const ACCEPTED = ".csv,.csv.gz,.h5,.tar.gz,.tgz";
+const ACCEPTED = ".csv,.csv.gz,.tsv,.tsv.gz,.h5,.tar.gz,.tgz";
 
 function bytesLabel(n: number): string {
   if (n < 1024) return `${n} B`;
@@ -104,7 +104,7 @@ export function UploadPanel({ onUploaded }: Props) {
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
             <p className="drop-zone__label">Drop files or click to browse</p>
-            <p className="drop-zone__hint">.csv, .csv.gz, .h5, .tar.gz (10X GEO archive or MTX dir)</p>
+            <p className="drop-zone__hint">.csv, .tsv, .csv.gz, .tsv.gz, .h5, .tar.gz</p>
           </div>
         )}
       </div>

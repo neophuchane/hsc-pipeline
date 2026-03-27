@@ -30,13 +30,15 @@ def _detect_format(filename: str) -> str:
     name = filename.lower()
     if name.endswith(".csv") or name.endswith(".csv.gz"):
         return "csv"
+    if name.endswith(".tsv") or name.endswith(".tsv.gz"):
+        return "tsv"
     if name.endswith(".h5"):
         return "h5"
     if name.endswith(".tar.gz") or name.endswith(".tgz"):
         return "mtx"
     raise HTTPException(
         status_code=400,
-        detail=f"Unsupported file: {filename}. Accepted: .csv, .csv.gz, .h5, .tar.gz",
+        detail=f"Unsupported file: {filename}. Accepted: .csv, .csv.gz, .tsv, .tsv.gz, .h5, .tar.gz",
     )
 
 

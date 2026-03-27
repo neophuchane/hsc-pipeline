@@ -36,6 +36,8 @@ def _detect_format(path: str) -> str:
     last_suffix = p.suffix.lower()
     if ".csv" in suffix:
         return "csv"
+    if ".tsv" in suffix:
+        return "tsv"
     if last_suffix in (".h5", ".h5ad"):
         return "h5"
     if suffix in (".tar.gz", ".tgz") or last_suffix == ".tgz":
@@ -96,6 +98,36 @@ def load_csv(filepath: str, sample_name: str) -> ad.AnnData:
     )
     adata.obs["orig_ident"] = sample_name
     logger.info("Loaded CSV: %d cells × %d genes", adata.n_obs, adata.n_vars)
+    return adata
+
+
+def load_tsv(filepath: str, sample_name: str) -> ad.AnnData:
+    """Load a TSV/TSV.GZ count matrix (tab-delimited equivalent of load_csv)."""
+    logger.info("Loading TSV: %s", filepath)
+    if filepath.endswith(".gz"):
+        with gzip.open(filepath, "rt") as f:
+            df = pd.read_csv(f, index_col=0, sep="\t")
+    else:
+        df = pd.read_csv(filepath, index_col=0, sep="\t")
+
+    df.index = df.index.astype(str)
+    df.columns = df.columns.astype(str)
+    df = df.select_dtypes(include=[np.number, "number"])
+
+    if _index_looks_like_barcodes(df.index):
+        logger.info("TSV detected as cells × genes (no transpose needed)")
+    else:
+        logger.info("TSV detected as genes × cells (transposing)")
+        df = df.T
+
+    X = sp.csr_matrix(df.values.astype(np.float32))
+    adata = ad.AnnData(
+        X=X,
+        obs=pd.DataFrame(index=df.index),
+        var=pd.DataFrame(index=df.columns),
+    )
+    adata.obs["orig_ident"] = sample_name
+    logger.info("Loaded TSV: %d cells × %d genes", adata.n_obs, adata.n_vars)
     return adata
 
 
@@ -193,6 +225,8 @@ def ingest(path: str, sample_name: str | None = None) -> ad.AnnData:
     fmt = _detect_format(path)
     if fmt == "csv":
         return load_csv(path, sample_name)
+    if fmt == "tsv":
+        return load_tsv(path, sample_name)
     if fmt == "h5":
         return load_h5(path, sample_name)
     if fmt == "mtx":
