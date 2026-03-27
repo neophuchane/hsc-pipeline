@@ -131,6 +131,7 @@ def compute_umap_data(adata: ad.AnnData) -> list[dict]:
             "cell_id": str(cell_id),
             "x": round(float(coords[i, 0]), 4),
             "y": round(float(coords[i, 1]), 4),
+            "z": round(float(coords[i, 2]), 4) if coords.shape[1] > 2 else 0.0,
         }
         for col in ["leiden", "orig_ident", "tissue_group", "nascent_score", "maturation_score"]:
             if col in obs.columns:

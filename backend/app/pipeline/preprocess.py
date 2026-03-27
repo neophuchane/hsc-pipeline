@@ -130,12 +130,12 @@ def find_clusters(adata: ad.AnnData, resolution: float = 0.2) -> ad.AnnData:
 
 def run_umap(adata: ad.AnnData) -> ad.AnnData:
     """
-    UMAP embedding.
+    UMAP embedding (3D).
 
     R: RunUMAP(obj, dims=1:30)
     """
-    logger.info("Running UMAP")
-    sc.tl.umap(adata)
+    logger.info("Running UMAP (3D)")
+    sc.tl.umap(adata, n_components=3)
     return adata
 
 

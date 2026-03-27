@@ -73,6 +73,7 @@ export interface UMAPPoint {
   cell_id: string;
   x: number;
   y: number;
+  z?: number;
   leiden?: string | null;
   orig_ident?: string | null;
   tissue_group?: string | null;

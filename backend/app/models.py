@@ -91,6 +91,7 @@ class UMAPPoint(BaseModel):
     cell_id: str
     x: float
     y: float
+    z: float = 0.0
     leiden: str | None = None
     orig_ident: str | None = None
     tissue_group: str | None = None

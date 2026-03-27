@@ -1,5 +1,5 @@
 /**
- * UMAPViewer — interactive Plotly.js WebGL scatter for UMAP coordinates.
+ * UMAPViewer — interactive Plotly.js 3D scatter for UMAP coordinates.
  *
  * Color modes:
  *   - leiden        (cluster — categorical)
@@ -48,13 +48,14 @@ function categoricalTraces(
   return sorted.map((key, i) => {
     const pts = groups.get(key)!;
     return {
-      type: "scattergl",
+      type: "scatter3d",
       mode: "markers",
       name: key,
       x: pts.map((p) => p.x),
       y: pts.map((p) => p.y),
+      z: pts.map((p) => p.z ?? 0),
       marker: {
-        size: 4,
+        size: 2.5,
         color: CAT_COLORS[i % CAT_COLORS.length],
         opacity: 0.75,
         line: { width: 0 },
@@ -72,13 +73,14 @@ function continuousTrace(
   const scores = points.map((p) => (p[colorBy] as number | null) ?? 0);
   return [
     {
-      type: "scattergl",
+      type: "scatter3d",
       mode: "markers",
       name: colorBy === "nascent_score" ? "Nascent score" : "Maturation score",
       x: points.map((p) => p.x),
       y: points.map((p) => p.y),
+      z: points.map((p) => p.z ?? 0),
       marker: {
-        size: 4,
+        size: 2.5,
         color: scores,
         colorscale: [
           [0, "#e5e5e5"],
@@ -132,20 +134,30 @@ export function UMAPViewer({ data, activeStages }: Props) {
   const layout: any = {
     paper_bgcolor: "#0e0e10",
     plot_bgcolor: "#0e0e10",
-    margin: { l: 40, r: 60, t: 20, b: 40 },
-    xaxis: {
-      title: { text: "UMAP 1", font: { color: "#64748b", size: 11 } },
-      tickfont: { color: "#475569", size: 10 },
-      gridcolor: "#1e293b",
-      linecolor: "#334155",
-      zeroline: false,
-    },
-    yaxis: {
-      title: { text: "UMAP 2", font: { color: "#64748b", size: 11 } },
-      tickfont: { color: "#475569", size: 10 },
-      gridcolor: "#1e293b",
-      linecolor: "#334155",
-      zeroline: false,
+    margin: { l: 0, r: 0, t: 20, b: 0 },
+    scene: {
+      bgcolor: "#0e0e10",
+      xaxis: {
+        title: { text: "UMAP 1", font: { color: "#64748b", size: 11 } },
+        tickfont: { color: "#475569", size: 9 },
+        gridcolor: "#1e293b",
+        linecolor: "#334155",
+        zeroline: false,
+      },
+      yaxis: {
+        title: { text: "UMAP 2", font: { color: "#64748b", size: 11 } },
+        tickfont: { color: "#475569", size: 9 },
+        gridcolor: "#1e293b",
+        linecolor: "#334155",
+        zeroline: false,
+      },
+      zaxis: {
+        title: { text: "UMAP 3", font: { color: "#64748b", size: 11 } },
+        tickfont: { color: "#475569", size: 9 },
+        gridcolor: "#1e293b",
+        linecolor: "#334155",
+        zeroline: false,
+      },
     },
     legend: {
       font: { color: "#94a3b8", size: 10 },
@@ -153,7 +165,7 @@ export function UMAPViewer({ data, activeStages }: Props) {
       bordercolor: "#334155",
       borderwidth: 1,
     },
-    height: 500,
+    height: 550,
     autosize: true,
   };
 
