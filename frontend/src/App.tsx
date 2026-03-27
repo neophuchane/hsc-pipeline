@@ -165,7 +165,7 @@ export default function App() {
 
   const main = (
     <div className="main-content">
-      {!results && !pipeline.isRunning && (
+      {!results && (
         <div className="empty-state">
           <p className="empty-state__welcome">Hello, human.</p>
           <img src="/bloodstem.gif" alt="BloodShot" className="empty-state__gif" />
@@ -230,5 +230,5 @@ export default function App() {
     </div>
   );
 
-  return <Layout sidebar={sidebar} main={main} noScroll={!results && !pipeline.isRunning} />;
+  return <Layout sidebar={sidebar} main={main} noScroll={!results} />;
 }
