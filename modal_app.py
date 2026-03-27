@@ -82,6 +82,9 @@ def pipeline_task(
     sys.path.insert(0, "/backend")
     os.environ["UPLOAD_DIR"] = UPLOAD_PATH
 
+    # Reload the volume to see files committed by the web function
+    upload_vol.reload()
+
     def progress(status: str, pct: int, step: str) -> None:
         job_store[job_id] = {
             **(job_store.get(job_id) or {}),
@@ -170,11 +173,14 @@ def web():
     sys.path.insert(0, "/backend")
     os.environ["UPLOAD_DIR"] = UPLOAD_PATH
 
+    os.environ["ALLOWED_ORIGINS"] = "*"
+
     # Wire Modal primitives into the app before routes are imported
     from app import modal_context
     modal_context.job_store = job_store
     modal_context.pipeline_fn = lambda *args: pipeline_task.spawn(*args)
     modal_context.volume_commit = lambda: upload_vol.commit()
+    modal_context.volume_reload = lambda: upload_vol.reload()
 
     from app.main import app as fastapi_app
     return fastapi_app

@@ -14,3 +14,6 @@ pipeline_fn = None
 
 # Callable — commits the uploads Modal.Volume so the pipeline function can see new files
 volume_commit = None
+
+# Callable — reloads the uploads Modal.Volume to see files written by other containers
+volume_reload = None

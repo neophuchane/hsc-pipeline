@@ -19,6 +19,7 @@ function bytesLabel(n: number): string {
 export function UploadPanel({ onUploaded }: Props) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadPct, setUploadPct] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -27,15 +28,17 @@ export function UploadPanel({ onUploaded }: Props) {
     async (files: File[]) => {
       if (!files.length) return;
       setUploading(true);
+      setUploadPct(0);
       setError(null);
       try {
-        const res = await uploadFiles(files);
+        const res = await uploadFiles(files, undefined, setUploadPct);
         setUploadedFiles((prev) => [...prev, ...res.files]);
         onUploaded(res.files);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Upload failed");
       } finally {
         setUploading(false);
+        setUploadPct(0);
       }
     },
     [onUploaded]
@@ -91,7 +94,7 @@ export function UploadPanel({ onUploaded }: Props) {
         {uploading ? (
           <div className="drop-zone__inner">
             <span className="spinner" />
-            <span>Uploading…</span>
+            <span>{uploadPct > 0 ? `Uploading… ${uploadPct}%` : "Uploading…"}</span>
           </div>
         ) : (
           <div className="drop-zone__inner">
