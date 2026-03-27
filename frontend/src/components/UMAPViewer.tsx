@@ -9,7 +9,7 @@
  *   - maturation_score (continuous)
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Plot from "react-plotly.js";
 import type { UMAPColorBy, UMAPPoint } from "@/types";
 
@@ -108,6 +108,35 @@ function continuousTrace(
 
 export function UMAPViewer({ data, activeStages }: Props) {
   const [colorBy, setColorBy] = useState<UMAPColorBy>("tissue_group");
+  const [autoRotate, setAutoRotate] = useState(false);
+  const plotRef = useRef<HTMLDivElement>(null);
+  const angleRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!autoRotate) {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      return;
+    }
+    const radius = 2.5;
+    const elevation = 1.5;
+    function step() {
+      angleRef.current += 0.005;
+      const eye = {
+        x: radius * Math.cos(angleRef.current),
+        y: radius * Math.sin(angleRef.current),
+        z: elevation,
+      };
+      const el = plotRef.current?.querySelector(".js-plotly-plot") as HTMLElement | null;
+      if (el) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).Plotly?.relayout(el, { "scene.camera.eye": eye });
+      }
+      rafRef.current = requestAnimationFrame(step);
+    }
+    rafRef.current = requestAnimationFrame(step);
+    return () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); };
+  }, [autoRotate]);
 
   const filtered = useMemo(
     () => data.filter((p) => !p.orig_ident || activeStages.has(p.orig_ident)),
@@ -170,7 +199,7 @@ export function UMAPViewer({ data, activeStages }: Props) {
   };
 
   return (
-    <div className="umap-viewer">
+    <div className="umap-viewer" ref={plotRef}>
       <div className="umap-controls">
         <span className="control-label">Color by</span>
         <div className="color-by-tabs">
@@ -184,6 +213,13 @@ export function UMAPViewer({ data, activeStages }: Props) {
             </button>
           ))}
         </div>
+        <button
+          className={`color-tab ${autoRotate ? "color-tab--active" : ""}`}
+          onClick={() => setAutoRotate((v) => !v)}
+          title="Toggle auto-rotate"
+        >
+          {autoRotate ? "⏹ Stop" : "↻ Rotate"}
+        </button>
         <span className="cell-count">{filtered.length.toLocaleString()} cells</span>
       </div>
 
