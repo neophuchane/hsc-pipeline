@@ -107,7 +107,11 @@ def find_neighbors(adata: ad.AnnData, n_pcs: int = 30) -> ad.AnnData:
 
     R: FindNeighbors(obj, dims=1:30)
     """
-    logger.info("Finding neighbors")
+    actual_pcs = adata.obsm["X_pca"].shape[1] if "X_pca" in adata.obsm else n_pcs
+    if actual_pcs < n_pcs:
+        logger.warning("Reducing n_pcs from %d to %d to match computed PCA", n_pcs, actual_pcs)
+    n_pcs = min(n_pcs, actual_pcs)
+    logger.info("Finding neighbors (n_pcs=%d)", n_pcs)
     sc.pp.neighbors(adata, n_pcs=n_pcs)
     return adata
 
