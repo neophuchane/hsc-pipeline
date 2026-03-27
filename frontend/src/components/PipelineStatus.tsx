@@ -73,7 +73,14 @@ export function PipelineStatus({ status, progress, step, error, jobId }: Props) 
         })}
       </div>
 
-      {error && <p className="error-text pipeline-error">{error}</p>}
+      {error && (
+        <div className="pipeline-error-block">
+          <p className="error-text pipeline-error">{error}</p>
+          <p className="pipeline-error-hint">
+            BloodShot is designed for <strong>human HSC data</strong>. If your sample is from a non-human organism (e.g. mouse), the pipeline may fail or produce inaccurate results.
+          </p>
+        </div>
+      )}
       {jobId && <p className="job-id">Job ID: <code>{jobId}</code></p>}
     </div>
   );

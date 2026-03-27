@@ -477,6 +477,8 @@ html, body, #root {
 .step-indicator--done .step-label   { color: var(--success); }
 
 .pipeline-error { margin-top: 8px; }
+.pipeline-error-block { margin-top: 8px; }
+.pipeline-error-hint { margin-top: 6px; font-size: 11px; color: #94a3b8; line-height: 1.5; }
 
 .job-id {
   font-size: 10px;
