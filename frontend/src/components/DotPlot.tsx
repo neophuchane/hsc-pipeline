@@ -135,12 +135,113 @@ export function DotPlot({ data, activeStages, visibleGenes }: Props) {
     autosize: true,
   };
 
+  // ── Pie chart: average pct_expressing per stage ──────────────────────────
+  const pieByStage = allStages.map((stage) => {
+    const pts = filtered.filter((d) => d.stage === stage);
+    const avg = pts.length
+      ? pts.reduce((sum, d) => sum + d.pct_expressing, 0) / pts.length
+      : 0;
+    return { stage, avg };
+  });
+
+  const pieTrace: any = {
+    type: "pie",
+    labels: pieByStage.map((d) => d.stage),
+    values: pieByStage.map((d) => parseFloat(d.avg.toFixed(2))),
+    textinfo: "label+percent",
+    hovertemplate: "<b>%{label}</b><br>Avg pct expressing: %{value:.1f}%<extra></extra>",
+    textfont: { color: "#94a3b8", size: 10 },
+    marker: {
+      colors: [
+        "#6366f1","#8b5cf6","#ec4899","#f43f5e","#f97316",
+        "#eab308","#22c55e","#14b8a6","#06b6d4","#3b82f6",
+        "#a855f7","#d946ef","#10b981","#f59e0b","#ef4444",
+      ],
+      line: { color: "#0e0e10", width: 1.5 },
+    },
+  };
+
+  const pieLayout: any = {
+    paper_bgcolor: "#0e0e10",
+    plot_bgcolor: "#0e0e10",
+    margin: { l: 10, r: 10, t: 30, b: 10 },
+    height: 320,
+    autosize: true,
+    showlegend: false,
+    title: {
+      text: "Avg % Expressing by Stage",
+      font: { color: "#94a3b8", size: 12 },
+    },
+  };
+
   return (
-    <Plot
-      data={[trace]}
-      layout={layout}
-      config={{ responsive: true, displayModeBar: true, displaylogo: false }}
-      style={{ width: "100%" }}
-    />
+    <>
+      <Plot
+        data={[trace]}
+        layout={layout}
+        config={{ responsive: true, displayModeBar: true, displaylogo: false }}
+        style={{ width: "100%" }}
+      />
+
+      {/* ── Pie + Table row ─────────────────────────────────────────────── */}
+      <div style={{ display: "flex", gap: "1.5rem", marginTop: "1.5rem", alignItems: "flex-start" }}>
+
+        {/* Pie chart */}
+        <div style={{ flex: "0 0 340px" }}>
+          <Plot
+            data={[pieTrace]}
+            layout={pieLayout}
+            config={{ responsive: true, displayModeBar: false, displaylogo: false }}
+            style={{ width: "100%" }}
+          />
+        </div>
+
+        {/* Table */}
+        <div style={{ flex: 1, overflowX: "auto" }}>
+          <p style={{ color: "#94a3b8", fontSize: "12px", marginBottom: "0.5rem" }}>
+            Pct Expressing (%) — Gene × Stage
+          </p>
+          <table style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: "11px",
+            fontFamily: "JetBrains Mono, monospace",
+            color: "#94a3b8",
+          }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: "left", padding: "4px 8px", borderBottom: "1px solid #334155", color: "#cbd5e1", position: "sticky", left: 0, background: "#0e0e10" }}>
+                  Gene
+                </th>
+                {allStages.map((stage) => (
+                  <th key={stage} style={{ padding: "4px 8px", borderBottom: "1px solid #334155", color: "#cbd5e1", whiteSpace: "nowrap", textAlign: "center" }}>
+                    {stage}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {allGenes.map((gene, gi) => (
+                <tr key={gene} style={{ background: gi % 2 === 0 ? "#0e0e10" : "#111318" }}>
+                  <td style={{ padding: "3px 8px", borderBottom: "1px solid #1e293b", color: "#e2e8f0", position: "sticky", left: 0, background: gi % 2 === 0 ? "#0e0e10" : "#111318" }}>
+                    {gene}
+                  </td>
+                  {allStages.map((stage) => {
+                    const pt = lookup.get(`${gene}::${stage}`);
+                    const val = pt ? pt.pct_expressing : null;
+                    return (
+                      <td key={stage} style={{ padding: "3px 8px", borderBottom: "1px solid #1e293b", textAlign: "center", color: val !== null ? "#e2e8f0" : "#334155" }}>
+                        {val !== null ? `${val.toFixed(1)}%` : "—"}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </>
   );
 }
