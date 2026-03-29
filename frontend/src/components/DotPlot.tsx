@@ -170,7 +170,13 @@ export function DotPlot({ data, activeStages, visibleGenes }: Props) {
               </tr>
             </thead>
             <tbody>
-              {allGenes.map((gene, gi) => (
+              {[...allGenes].sort((a, b) => {
+                const avgPct = (gene: string) => {
+                  const pts = allStages.map((s) => lookup.get(`${gene}::${s}`)).filter(Boolean);
+                  return pts.length ? pts.reduce((sum, p) => sum + p!.pct_expressing, 0) / pts.length : 0;
+                };
+                return avgPct(b) - avgPct(a);
+              }).map((gene, gi) => (
                 <tr key={gene} style={{ background: gi % 2 === 0 ? "#0e0e10" : "#111318" }}>
                   <td style={{ padding: "3px 8px", borderBottom: "1px solid #1e293b", color: "#e2e8f0", position: "sticky", left: 0, background: gi % 2 === 0 ? "#0e0e10" : "#111318" }}>
                     {gene}
