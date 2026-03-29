@@ -135,45 +135,6 @@ export function DotPlot({ data, activeStages, visibleGenes }: Props) {
     autosize: true,
   };
 
-  // ── Pie chart: average pct_expressing per stage ──────────────────────────
-  const pieByStage = allStages.map((stage) => {
-    const pts = filtered.filter((d) => d.stage === stage);
-    const avg = pts.length
-      ? pts.reduce((sum, d) => sum + d.pct_expressing, 0) / pts.length
-      : 0;
-    return { stage, avg };
-  });
-
-  const pieTrace: any = {
-    type: "pie",
-    labels: pieByStage.map((d) => d.stage),
-    values: pieByStage.map((d) => parseFloat(d.avg.toFixed(2))),
-    textinfo: "label+percent",
-    hovertemplate: "<b>%{label}</b><br>Avg pct expressing: %{value:.1f}%<extra></extra>",
-    textfont: { color: "#94a3b8", size: 10 },
-    marker: {
-      colors: [
-        "#6366f1","#8b5cf6","#ec4899","#f43f5e","#f97316",
-        "#eab308","#22c55e","#14b8a6","#06b6d4","#3b82f6",
-        "#a855f7","#d946ef","#10b981","#f59e0b","#ef4444",
-      ],
-      line: { color: "#0e0e10", width: 1.5 },
-    },
-  };
-
-  const pieLayout: any = {
-    paper_bgcolor: "#0e0e10",
-    plot_bgcolor: "#0e0e10",
-    margin: { l: 10, r: 10, t: 30, b: 10 },
-    height: 320,
-    autosize: true,
-    showlegend: false,
-    title: {
-      text: "Avg % Expressing by Stage",
-      font: { color: "#94a3b8", size: 12 },
-    },
-  };
-
   return (
     <>
       <Plot
@@ -183,21 +144,9 @@ export function DotPlot({ data, activeStages, visibleGenes }: Props) {
         style={{ width: "100%" }}
       />
 
-      {/* ── Pie + Table row ─────────────────────────────────────────────── */}
-      <div style={{ display: "flex", gap: "1.5rem", marginTop: "1.5rem", alignItems: "flex-start" }}>
-
-        {/* Pie chart */}
-        <div style={{ flex: "0 0 340px" }}>
-          <Plot
-            data={[pieTrace]}
-            layout={pieLayout}
-            config={{ responsive: true, displayModeBar: false, displaylogo: false }}
-            style={{ width: "100%" }}
-          />
-        </div>
-
-        {/* Table */}
-        <div style={{ flex: 1, overflowX: "auto" }}>
+      {/* ── Table ───────────────────────────────────────────────────────── */}
+      <div style={{ marginTop: "1.5rem" }}>
+        <div style={{ overflowX: "auto" }}>
           <p style={{ color: "#94a3b8", fontSize: "12px", marginBottom: "0.5rem" }}>
             Pct Expressing (%) — Gene × Stage
           </p>
