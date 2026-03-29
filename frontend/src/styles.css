@@ -680,7 +680,7 @@ html, body, #root {
 }
 
 .empty-state__icon { opacity: 0.4; }
-.empty-state__gif { width: 30%; height: auto; border-radius: 0; }
+.empty-state__gif { width: 40%; height: auto; border-radius: 0; }
 
 .empty-state__title {
   font-size: 20px;
